@@ -1,8 +1,9 @@
 // Dependencies
 var express = require("express");
 var bodyParser = require("body-parser");
-var logger = require("morgan");
+var morgan = require("morgan");
 var mongoose = require("mongoose");
+var mongojs = require("mongojs");
 var path = require("path");
 
 // Requiring Note and Article models
@@ -12,6 +13,8 @@ var Article = require("./models/Article.js");
 // Scraping tools
 var request = require("request");
 var cheerio = require("cheerio");
+var databaseUrl = "scraper";
+var collections = ["scrapedData"];
 
 // Set mongoose to leverage built in JavaScript ES6 Promises
 mongoose.Promise = Promise;
@@ -23,7 +26,7 @@ var port = process.env.PORT || 3000
 var app = express();
 
 // Use morgan and body parser with our app
-app.use(logger("dev"));
+app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({
   extended: false
 }));
@@ -40,10 +43,11 @@ app.engine("handlebars", exphbs({
 }));
 app.set("view engine", "handlebars");
 
-// Database configuration with mongoose
-mongoose.connect("mongodb://heroku_jmv816f9:5j1nd4taq42hi29bfm5hobeujd@ds133192.mlab.com:33192/heroku_jmv816f9");
-//mongoose.connect("mongodb://localhost/mongoscraper");
-var db = mongoose.connection;
+// Hook mongojs configuration to the db variable
+var db = mongojs(databaseUrl, collections);
+db.on("error", function(error) {
+  console.log("Database Error:", error);
+});
 
 // Show any mongoose errors
 db.on("error", function(error) {
