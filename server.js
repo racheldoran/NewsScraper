@@ -1,9 +1,6 @@
-// Dependencies
 var express = require("express");
-var bodyParser = require("body-parser");
-var morgan = require("morgan");
+var logger = require("morgan");
 var mongoose = require("mongoose");
-var mongojs = require("mongojs");
 var path = require("path");
 
 // Requiring Note and Article models
@@ -13,11 +10,14 @@ var Article = require("./models/Article.js");
 // Scraping tools
 var request = require("request");
 var cheerio = require("cheerio");
-var databaseUrl = "scraper";
-var collections = ["scrapedData"];
 
-// Set mongoose to leverage built in JavaScript ES6 Promises
+//Mongoose promise//
 mongoose.Promise = Promise;
+
+// If deployed, use the deployed database. Otherwise use the local mongoHeadlines database
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
+mongoose.connect(MONGODB_URI);
+
 
 //Define port
 var port = process.env.PORT || 3000
@@ -26,7 +26,7 @@ var port = process.env.PORT || 3000
 var app = express();
 
 // Use morgan and body parser with our app
-app.use(morgan("dev"));
+app.use(logger("dev"));
 app.use(bodyParser.urlencoded({
   extended: false
 }));
@@ -43,11 +43,7 @@ app.engine("handlebars", exphbs({
 }));
 app.set("view engine", "handlebars");
 
-// Hook mongojs configuration to the db variable
-var db = mongojs(databaseUrl, collections);
-db.on("error", function(error) {
-  console.log("Database Error:", error);
-});
+
 
 // Show any mongoose errors
 db.on("error", function(error) {
@@ -59,8 +55,10 @@ db.once("open", function() {
   console.log("Mongoose connection successful.");
 });
 
-// Routes
-// ======
+// Database configuration with mongoose
+mongoose.connect("mongodb://heroku_jmv816f9:5j1nd4taq42hi29bfm5hobeujd@ds133192.mlab.com:33192/heroku_jmv816f9");
+//mongoose.connect("mongodb://localhost/mongoscraper");
+var db = mongoose.connection;
 
 //GET requests to render Handlebars pages
 app.get("/", function(req, res) {
