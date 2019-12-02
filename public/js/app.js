@@ -57,7 +57,7 @@ $(".saveNote").on("click", function() {
           });
     }
 });
-
+cd ..$
 $(".deleteNote").on("click", function() {
     var noteId = $(this).attr("data-note-id");
     var articleId = $(this).attr("data-article-id");
